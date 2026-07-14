@@ -1,0 +1,194 @@
+/* ------------------------------------------------------------------------
+   CASO SQL: O ENIGMA DA CONSULTA PERDIDA
+   Folha de estilos — visual de quadrinho noir dos anos 50.
+   Carregado em src/ui/styles.py via inject_css().
+   ------------------------------------------------------------------------ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Bungee&family=Comic+Neue:wght@400;700&display=swap');
+
+:root{
+    --ink:#111111;
+    --paper:#f3e6c8;
+    --red:#d7263d;
+    --yellow:#f6c445;
+    --blue:#1f5fa8;
+    --green:#2e8b57;
+    --panel-shadow: 6px 6px 0px #111111;
+}
+
+html, body, [class*="css"]  { font-family: 'Comic Neue', cursive; }
+
+.stApp{
+    background-color: var(--paper);
+    background-image: radial-gradient(circle, rgba(17,17,17,0.10) 1.4px, transparent 1.4px);
+    background-size: 14px 14px;
+}
+
+.comic-title{
+    font-family: 'Bangers', cursive;
+    font-size: 4rem;
+    letter-spacing: 3px;
+    text-align: center;
+    color: var(--yellow);
+    -webkit-text-stroke: 3px var(--ink);
+    text-shadow: 6px 6px 0 var(--red);
+    transform: rotate(-2deg);
+    margin-bottom: 0;
+}
+.comic-subtitle{
+    font-family: 'Bungee', cursive;
+    text-align:center;
+    color: var(--paper);
+    background: var(--ink);
+    display:inline-block;
+    padding: 6px 22px;
+    border-radius: 4px;
+    transform: rotate(1deg);
+    margin: 0 auto 18px auto;
+    box-shadow: var(--panel-shadow);
+    font-size: 1rem;
+}
+.center-wrap{ text-align:center; }
+
+.panel{
+    background: #fffaf0;
+    border: 4px solid var(--ink);
+    border-radius: 6px;
+    box-shadow: var(--panel-shadow);
+    padding: 18px 22px;
+    margin-bottom: 22px;
+}
+.panel-title{
+    font-family:'Bangers', cursive;
+    font-size:1.6rem;
+    color: var(--red);
+    -webkit-text-stroke: 1px var(--ink);
+    margin-bottom: 8px;
+}
+
+.speech-bubble{
+    position:relative;
+    background:#fff;
+    border:3px solid var(--ink);
+    border-radius: 18px;
+    padding: 14px 18px;
+    margin: 14px 0 22px 10px;
+    font-weight:700;
+    box-shadow: 4px 4px 0 var(--ink);
+}
+.speech-bubble:after{
+    content:"";
+    position:absolute; left: 28px; bottom: -18px;
+    border-width: 18px 12px 0 0;
+    border-style: solid;
+    border-color: var(--ink) transparent transparent transparent;
+}
+.speech-bubble:before{
+    content:"";
+    position:absolute; left: 31px; bottom: -13px;
+    border-width: 14px 9px 0 0;
+    border-style: solid;
+    border-color: #fff transparent transparent transparent;
+    z-index:1;
+}
+.clue-number{
+    font-family:'Bangers', cursive;
+    background: var(--blue);
+    color:#fff;
+    border-radius:50%;
+    width: 30px; height:30px;
+    display:inline-flex; align-items:center; justify-content:center;
+    margin-right:8px;
+    border: 2px solid var(--ink);
+}
+
+.badge-pow{
+    font-family:'Bangers', cursive;
+    background: var(--yellow);
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    display:inline-block;
+    padding: 10px 14px;
+    transform: rotate(-8deg);
+    box-shadow: var(--panel-shadow);
+    color: var(--red);
+}
+
+.case-closed{
+    font-family:'Bangers', cursive;
+    font-size: 3rem;
+    text-align:center;
+    color: var(--red);
+    -webkit-text-stroke: 2px var(--ink);
+    transform: rotate(-3deg);
+    background: var(--yellow);
+    border: 5px solid var(--ink);
+    padding: 10px;
+    box-shadow: var(--panel-shadow);
+}
+
+.stButton>button{
+    font-family:'Bangers', cursive;
+    letter-spacing:1px;
+    background: var(--yellow) !important;
+    color: var(--ink) !important;
+    border: 3px solid var(--ink) !important;
+    border-radius: 8px !important;
+    box-shadow: 4px 4px 0 var(--ink) !important;
+    font-size: 1.05rem !important;
+}
+.stButton>button:hover{ background: var(--red) !important; color: #fff !important; }
+
+.stCodeBlock, pre{ border: 3px solid var(--ink) !important; box-shadow: var(--panel-shadow) !important; }
+
+hr.comic-hr{ border: none; border-top: 4px dashed var(--ink); margin: 18px 0; }
+
+/* Badge de nível */
+.level-badge{
+    font-family:'Bangers', cursive;
+    display:inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 3px solid var(--ink);
+    margin-right: 8px;
+    box-shadow: 3px 3px 0 var(--ink);
+}
+.level-facil{ background: var(--green); color:#fff; }
+.level-medio{ background: var(--yellow); color: var(--ink); }
+.level-dificil{ background: var(--red); color:#fff; }
+.level-locked{ background: #999; color:#eee; }
+
+/* Cronômetro */
+.timer-box{
+    font-family:'Bangers', cursive;
+    font-size: 1.8rem;
+    text-align:center;
+    background: var(--ink);
+    color: var(--yellow);
+    border: 4px solid var(--ink);
+    border-radius: 10px;
+    padding: 6px 10px;
+    box-shadow: var(--panel-shadow);
+}
+.timer-danger{ color: var(--red) !important; }
+
+.score-box{
+    font-family:'Bangers', cursive;
+    font-size: 1.6rem;
+    text-align:center;
+    background: var(--blue);
+    color: #fff;
+    border: 4px solid var(--ink);
+    border-radius: 10px;
+    padding: 6px 10px;
+    box-shadow: var(--panel-shadow);
+}
+
+.player-card{
+    background:#fff;
+    border:3px solid var(--ink);
+    border-radius: 10px;
+    padding: 10px 14px;
+    box-shadow: 4px 4px 0 var(--ink);
+    margin-bottom: 12px;
+}
