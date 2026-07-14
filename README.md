@@ -62,6 +62,17 @@ Os testes cobrem o motor de dedução puro (`src/engine.py`) e garantem que os 3
 convergem para solução única (nenhuma ambiguidade) e que o SQL gerado bate com o
 esperado.
 
+## Tema e contraste de texto
+
+O jogo força um tema **claro** do Streamlit via `.streamlit/config.toml` (fundo cor de
+papel, texto preto). Isso existe porque, sem essa configuração, o Streamlit Cloud pode
+aplicar automaticamente um tema **escuro** ao app (dependendo da preferência do
+navegador/conta de quem acessa) — e como o visual em quadrinho usa fundo claro, o texto
+herdado do tema escuro (branco) ficava invisível em painéis, balões de fala, ficha do
+detetive e no título do nível. Se ainda notar algum texto sem contraste em algum canto
+específico, normalmente é porque aquele elemento não tem uma cor própria definida em
+`assets/styles.css` — basta adicionar `color: var(--ink);` à classe correspondente.
+
 ## Como jogar
 
 0. **Cadastro (uma única vez)** — na primeira vez que abrir o jogo, você cria sua ficha

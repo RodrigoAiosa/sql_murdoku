@@ -262,7 +262,7 @@ def render_game(levels):
     with top1:
         st.markdown(
             f'<span class="level-badge {level["css_class"]}">{level["dificuldade"]}</span>'
-            f'<b style="font-family:Bangers; font-size:1.4rem;">{level["titulo"]}</b>',
+            f'<b style="font-family:Bangers; font-size:1.4rem; color:var(--ink);">{level["titulo"]}</b>',
             unsafe_allow_html=True,
         )
     with top2:
