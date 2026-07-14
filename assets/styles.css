@@ -195,3 +195,97 @@ hr.comic-hr{ border: none; border-top: 4px dashed var(--ink); margin: 18px 0; }
     margin-bottom: 12px;
     color: var(--ink);
 }
+
+/* ------------------------------------------------------------------------
+   TEXTOS NATIVOS DO STREAMLIT (headers em markdown, log do agente, etc.)
+   Restrito a <p>/<li>/<strong>/<em> dentro do container de markdown para
+   nunca conflitar com nossos componentes coloridos (badges, cronômetro...),
+   que são <div>/<span> e não caem nesse seletor.
+   ------------------------------------------------------------------------ */
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] strong,
+[data-testid="stMarkdownContainer"] em {
+    color: var(--ink) !important;
+}
+
+/* ------------------------------------------------------------------------
+   LABELS E OPÇÕES DE WIDGETS (rádio, checkbox, select, multiselect, texto)
+   ------------------------------------------------------------------------ */
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] label,
+.stRadio label,
+.stRadio label p,
+.stRadio label span,
+.stRadio label div,
+.stCheckbox label,
+.stCheckbox label p,
+.stCheckbox label span {
+    color: var(--ink) !important;
+    font-weight: 700;
+}
+
+/* Caixas de texto, número, select e multiselect com visual de HQ */
+.stTextInput input,
+.stNumberInput input,
+[data-baseweb="select"] > div {
+    background-color: #fffaf0 !important;
+    border: 3px solid var(--ink) !important;
+    border-radius: 8px !important;
+    color: var(--ink) !important;
+    box-shadow: 3px 3px 0 var(--ink);
+}
+.stTextInput input::placeholder { color: #7a7a7a !important; opacity: 1; }
+[data-baseweb="select"] > div * { color: var(--ink) !important; }
+[data-baseweb="tag"] { background-color: var(--blue) !important; }
+[data-baseweb="tag"] span { color: #fff !important; }
+
+/* Menu suspenso do select/multiselect (renderizado fora do widget) */
+[data-baseweb="popover"] ul,
+[data-baseweb="menu"] ul {
+    background-color: #fffaf0 !important;
+    border: 3px solid var(--ink) !important;
+}
+[data-baseweb="popover"] li,
+[data-baseweb="menu"] li,
+[data-baseweb="popover"] li *,
+[data-baseweb="menu"] li * {
+    color: var(--ink) !important;
+}
+[data-baseweb="popover"] li:hover,
+[data-baseweb="menu"] li:hover {
+    background-color: var(--yellow) !important;
+}
+
+/* ------------------------------------------------------------------------
+   ABAS (st.tabs) com visual de quadrinho — pílulas cor de papel, texto
+   preto e indicador da aba ativa em vermelho.
+   ------------------------------------------------------------------------ */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    border-bottom: none;
+}
+.stTabs [data-baseweb="tab"] {
+    background-color: #fffaf0;
+    border: 3px solid var(--ink);
+    border-radius: 10px 10px 0 0;
+    padding: 8px 18px;
+    box-shadow: 3px 3px 0 var(--ink);
+    margin-bottom: 0;
+}
+.stTabs [data-baseweb="tab"] p {
+    font-family: 'Bangers', cursive;
+    letter-spacing: 0.5px;
+    font-size: 1.05rem;
+    color: var(--ink) !important;
+}
+.stTabs [aria-selected="true"] {
+    background-color: var(--yellow) !important;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: var(--red) !important;
+    height: 4px !important;
+}
+.stTabs [data-baseweb="tab-border"] {
+    background-color: transparent !important;
+}
