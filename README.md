@@ -94,8 +94,8 @@ específico, normalmente é porque aquele elemento não tem uma cor própria def
 
 ## Cadastro único e integração com Google Sheets
 
-O cadastro (nome, codinome, avatar) é pensado para acontecer **uma única vez** por
-detetive, com dois mecanismos que trabalham juntos:
+O cadastro (nome, email, celular, codinome, avatar) é pensado para acontecer **uma
+única vez** por detetive, com dois mecanismos que trabalham juntos:
 
 ### 1. Sessão local (funciona sem nenhuma configuração)
 Ao se cadastrar, o jogo salva um arquivo `~/.caso_sql_comic_session.json` no seu usuário
@@ -119,7 +119,7 @@ gravar dados através dele. Por isso a integração foi dividida em duas partes:
   Arquivo `Code.gs` incluso neste projeto — copie e cole no Apps Script da sua planilha.
   Passo a passo completo está comentado no topo do próprio arquivo `Code.gs`, resumindo:
   1. Abra a planilha → Extensões → Apps Script → cole o conteúdo de `Code.gs`.
-  2. Na primeira aba da planilha, crie o cabeçalho: `nome | codinome | avatar | badge | timestamp`.
+  2. Na primeira aba da planilha, crie o cabeçalho (veja a ordem exata abaixo).
   3. Implantar → Nova implantação → tipo "Web app" → executar como você → acesso "Qualquer pessoa".
   4. Copie a URL gerada (termina em `/exec`).
   5. Cole essa URL na constante `GOOGLE_SCRIPT_WEBAPP_URL`, em `src/config.py`.
@@ -132,6 +132,38 @@ salvando.
 
 Se dois detetives tentarem usar o mesmo codinome, o cadastro é recusado com um aviso
 para escolher outro (ou fazer login, se o codinome for realmente dele).
+
+### Esquema da planilha
+
+O cabeçalho da linha 1 precisa ser **exatamente** esta ordem:
+
+```
+DATA_HORA | ID_REGISTRO | NOME | EMAIL | CELULAR | IP | CODINOME | AVATAR | BADGE
+```
+
+| Coluna | Como é preenchida |
+|---|---|
+| `DATA_HORA` | **Automática** — gerada pelo `Code.gs` no momento da gravação (`new Date()`), nunca pelo cliente. |
+| `ID_REGISTRO` | **Automática** — um código único (`uuid4`) gerado no instante do cadastro, no app. |
+| `NOME` | Digitado pelo jogador. |
+| `EMAIL` | Digitado pelo jogador (validado com uma checagem simples de formato). |
+| `CELULAR` | Digitado pelo jogador. |
+| `IP` | **Automática**, via `st.context.ip_address` (ver caixa abaixo). |
+| `CODINOME` | Digitado pelo jogador — é a chave usada para login e no placar público. |
+| `AVATAR` | Escolhido pelo jogador (emoji). |
+| `BADGE` | **Automática** — número de distintivo sorteado. |
+
+As três últimas colunas (`CODINOME`, `AVATAR`, `BADGE`) existem porque o jogo usa esses
+dados para o login por codinome e para o placar de detetives — se você não precisa
+delas na sua planilha, pode ignorá-las, mas não remova o cabeçalho ou o script vai
+gravar nas colunas erradas.
+
+> **Sobre a coluna IP:** o Streamlit (a partir da versão 1.37) expõe o IP de quem está
+> acessando via `st.context.ip_address`. Isso só funciona rodando em um servidor real
+> (ex: Streamlit Cloud) — localmente, ou em versões mais antigas do Streamlit, o jogo
+> grava "desconhecido" em vez de arriscar um valor errado. **Importante:** o jogo nunca
+> usa um serviço externo de "qual é meu IP" pra isso, porque isso retornaria o IP do
+> *servidor* do Streamlit, não o do visitante — seria uma informação incorreta.
 
 ### Checklist se o cadastro não estiver salvando na planilha
 
@@ -147,12 +179,11 @@ para escolher outro (ou fazer login, se o codinome for realmente dele).
 5. **Editou o `Code.gs` depois de implantar?** Toda alteração exige "Implantar > Gerenciar
    implantações > editar (lápis) > Nova versão", ou a URL antiga continua rodando o
    código antigo. Editar o script sem gerar nova versão é a segunda causa mais comum.
-6. **A primeira aba da planilha tem o cabeçalho exato** `nome | codinome | avatar |
-   badge | timestamp` na linha 1 (mesma ordem, sem acentos diferentes).
-7. Depois de cadastrar, o jogo agora mostra uma mensagem (✅ sincronizado ou ℹ️ não
-   configurado) logo no topo da tela principal, uma única vez — antes essa mensagem
-   desaparecia instantaneamente por causa de um bug (ela era exibida e, no mesmo
-   instante, apagada por um `st.rerun()` que rodava em seguida). Isso já foi corrigido.
+6. **A primeira aba da planilha tem o cabeçalho exato** listado acima, na mesma ordem.
+   Se você vinha de uma versão anterior deste projeto (colunas
+   `nome | codinome | avatar | badge | timestamp`), é preciso refazer o cabeçalho.
+7. Depois de cadastrar, o jogo mostra uma mensagem (✅ sincronizado ou ℹ️ não
+   configurado) logo no topo da tela principal, uma única vez.
 
 ## Níveis
 

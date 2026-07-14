@@ -7,7 +7,9 @@ publicada na web (Arquivo > Compartilhar > Publicar na web) — usado para
 checar se um codinome já está cadastrado, mesmo em outro dispositivo.
 
 ESCRITA: feita via POST ao Web App do Google Apps Script (ver Code.gs e
-o README para o passo a passo de publicação). Se
+o README para o passo a passo de publicação). O payload enviado inclui
+id_registro, nome, email, celular, ip, codinome, avatar e badge — a
+DATA_HORA é sempre gerada pelo próprio Code.gs, nunca pelo cliente. Se
 config.GOOGLE_SCRIPT_WEBAPP_URL não estiver preenchida, o cadastro
 continua funcionando, só que sem sincronizar com a planilha.
 """
