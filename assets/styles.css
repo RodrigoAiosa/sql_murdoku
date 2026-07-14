@@ -129,7 +129,10 @@ html, body, [class*="css"]  { font-family: 'Comic Neue', cursive; }
     box-shadow: var(--panel-shadow);
 }
 
-.stButton>button{
+.stButton>button,
+[data-testid="stFormSubmitButton"]>button,
+[data-testid="baseButton-secondaryFormSubmit"],
+[data-testid="baseButton-primaryFormSubmit"]{
     font-family:'Bangers', cursive;
     letter-spacing:1px;
     background: var(--yellow) !important;
@@ -139,7 +142,18 @@ html, body, [class*="css"]  { font-family: 'Comic Neue', cursive; }
     box-shadow: 4px 4px 0 var(--ink) !important;
     font-size: 1.05rem !important;
 }
-.stButton>button:hover{ background: var(--red) !important; color: #fff !important; }
+.stButton>button:hover,
+[data-testid="stFormSubmitButton"]>button:hover,
+[data-testid="baseButton-secondaryFormSubmit"]:hover,
+[data-testid="baseButton-primaryFormSubmit"]:hover{
+    background: var(--red) !important;
+    color: #fff !important;
+}
+.stButton>button p,
+[data-testid="stFormSubmitButton"]>button p{
+    color: inherit !important;
+    font-family: inherit;
+}
 
 .stCodeBlock, pre{ border: 3px solid var(--ink) !important; box-shadow: var(--panel-shadow) !important; }
 
