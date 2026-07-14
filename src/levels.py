@@ -79,8 +79,8 @@ def level_1():
         "css_class": "level-facil",
         "narrativa": "O chefe da delegacia precisa de um relatório extraído do banco de "
                       "dados da loja. Só restaram anotações rabiscadas às pressas.",
-        "time_limit": 360,
         "base_points": 1000,
+        "time_limit": 360,
         "options": options,
         "clues": clues,
         "column_pool": ["cliente.nome", "cliente.email", "pedido.valor", "pedido.data"],
@@ -151,8 +151,8 @@ def level_2():
         "css_class": "level-medio",
         "narrativa": "Produtos sumindo do sistema, fornecedores sem cadastro... o "
                       "estoquista precisa de um relatório completo, sem exceções.",
-        "time_limit": 300,
         "base_points": 1500,
+        "time_limit": 300,
         "options": options,
         "clues": clues,
         "column_pool": ["produtos.nome", "produtos.preco", "fornecedores.nome", "fornecedores.cidade"],
@@ -229,8 +229,8 @@ def level_3():
         "css_class": "level-dificil",
         "narrativa": "A diretoria quer saber quem são os clientes mais valiosos da "
                       "empresa — e quer a lista enxuta, só com os melhores.",
-        "time_limit": 240,
         "base_points": 2000,
+        "time_limit": 240,
         "options": options,
         "clues": clues,
         "column_pool": [

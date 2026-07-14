@@ -90,5 +90,9 @@ def render_registration_screen():
                 st.session_state.player = player
                 save_local_session(player)
                 ok, msg = register_cloud_player(player)
-                (st.success if ok else st.info)(msg)
+                # Guarda o resultado da sincronização para exibir na tela
+                # seguinte — se disparássemos st.success/st.info aqui e já
+                # chamássemos st.rerun() na sequência, a mensagem seria
+                # apagada antes do jogador conseguir lê-la.
+                st.session_state["_cloud_sync_notice"] = (ok, msg)
                 st.rerun()

@@ -62,3 +62,11 @@ POINTS_PER_SECOND_REMAINING = 2
 PENALTY_PER_WRONG_ATTEMPT = 50
 PENALTY_FOR_USING_AGENT = 400
 MIN_SCORE_FLOOR = 50
+
+# ----------------------------------------------------------------------
+# Cronômetro
+# ----------------------------------------------------------------------
+# O jogador pode ligar/desligar o cronômetro a qualquer momento (barra
+# superior do jogo). Este é apenas o valor padrão ao abrir o jogo.
+TIMER_ENABLED_BY_DEFAULT = True
+TIMER_REFRESH_INTERVAL_MS = 1000

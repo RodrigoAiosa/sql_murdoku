@@ -34,8 +34,11 @@ def level_badge(text, css_class):
     st.markdown(f'<span class="level-badge {css_class}">{text}</span>', unsafe_allow_html=True)
 
 
-def timer_box(text, danger=False):
-    cls = "timer-box timer-danger" if danger else "timer-box"
+def timer_box(text, danger=False, off=False):
+    if off:
+        cls = "timer-off"
+    else:
+        cls = "timer-box timer-danger" if danger else "timer-box"
     st.markdown(f'<div class="{cls}">{text}</div>', unsafe_allow_html=True)
 
 

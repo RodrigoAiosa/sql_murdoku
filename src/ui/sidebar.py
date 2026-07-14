@@ -2,6 +2,7 @@
 
 import streamlit as st
 
+from src.config import GOOGLE_SCRIPT_WEBAPP_URL
 from src.session import clear_local_session
 from src.ui.components import player_card, score_box
 
@@ -32,6 +33,15 @@ def render_sidebar(levels):
     with st.sidebar:
         player_card(player["avatar"], player["codinome"], player["nome"], player["badge"])
         score_box(f"🏆 {total_score()} pts")
+
+        if GOOGLE_SCRIPT_WEBAPP_URL:
+            st.caption("☁️ Sincronização com a planilha: **configurada**")
+        else:
+            st.caption(
+                "☁️ Sincronização com a planilha: **não configurada** — os cadastros "
+                "estão sendo salvos só localmente. Veja o README (seção 'Cadastro único "
+                "e integração com Google Sheets') para ativar."
+            )
         st.write("")
 
         st.markdown("**Níveis do caso:**")

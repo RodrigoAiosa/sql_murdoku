@@ -174,6 +174,31 @@ hr.comic-hr{ border: none; border-top: 4px dashed var(--ink); margin: 18px 0; }
 .level-dificil{ background: var(--red); color:#fff; }
 .level-locked{ background: #999; color: var(--ink); }
 
+/* Cronômetro */
+.timer-box{
+    font-family:'Bangers', cursive;
+    font-size: 1.8rem;
+    text-align:center;
+    background: var(--ink);
+    color: var(--yellow);
+    border: 4px solid var(--ink);
+    border-radius: 10px;
+    padding: 6px 10px;
+    box-shadow: var(--panel-shadow);
+}
+.timer-danger{ color: var(--red) !important; }
+.timer-off{
+    font-family:'Bangers', cursive;
+    font-size: 1.1rem;
+    text-align:center;
+    background: #ccc;
+    color: var(--ink);
+    border: 4px solid var(--ink);
+    border-radius: 10px;
+    padding: 10px 10px;
+    box-shadow: var(--panel-shadow);
+}
+
 .score-box{
     font-family:'Bangers', cursive;
     font-size: 1.6rem;

@@ -29,7 +29,7 @@ Este arquivo é apenas o ponto de entrada: toda a lógica mora em src/.
 
 import streamlit as st
 
-from src.config import PAGE_TITLE, PAGE_ICON
+from src.config import PAGE_TITLE, PAGE_ICON, TIMER_ENABLED_BY_DEFAULT
 from src.levels import LEVELS
 from src.session import load_local_session
 from src.ui.styles import inject_css
@@ -55,6 +55,9 @@ if "player" not in st.session_state:
 if "current_level" not in st.session_state:
     st.session_state.current_level = 0
 
+if "timer_enabled" not in st.session_state:
+    st.session_state.timer_enabled = TIMER_ENABLED_BY_DEFAULT
+
 if "level_state" not in st.session_state:
     st.session_state.level_state = {
         lvl["id"]: {
@@ -71,5 +74,13 @@ if st.session_state.player is None:
     st.stop()
 
 title_banner()
+
+# Mostra (uma única vez) o resultado da tentativa de sincronizar o
+# cadastro com a planilha do Google, feita na tela de cadastro.
+notice = st.session_state.pop("_cloud_sync_notice", None)
+if notice is not None:
+    ok, msg = notice
+    (st.success if ok else st.info)(msg)
+
 render_sidebar(LEVELS)
 render_game(LEVELS)

@@ -7,11 +7,18 @@ import time
 
 import streamlit as st
 
+try:
+    from streamlit_autorefresh import st_autorefresh
+    HAS_AUTOREFRESH = True
+except ImportError:
+    HAS_AUTOREFRESH = False
+
 from src.config import (
     POINTS_PER_SECOND_REMAINING,
     PENALTY_PER_WRONG_ATTEMPT,
     PENALTY_FOR_USING_AGENT,
     MIN_SCORE_FLOOR,
+    TIMER_REFRESH_INTERVAL_MS,
 )
 from src.leaderboard import update_leaderboard, top_entries
 from src.ui.components import panel, speech_bubble, badge_pow, case_closed, timer_box, score_box
@@ -36,7 +43,7 @@ def _render_montar_tab(level, ls, player, remaining, current_level_idx, total_le
         st.info(f"Pontuação obtida neste nível: **{ls['score']} pts**.")
         return
 
-    if remaining <= 0:
+    if remaining is not None and remaining <= 0:
         st.error(
             "⏱ O TEMPO ESGOTOU! Você ainda pode resolver o caso, mas sem bônus de "
             "tempo. Clique em 'Verificar Solução' quando estiver pronto, ou peça ajuda "
@@ -167,9 +174,9 @@ def _render_montar_tab(level, ls, player, remaining, current_level_idx, total_le
         )
         return
 
-    time_bonus = int(remaining) * POINTS_PER_SECOND_REMAINING
     penalty = ls["wrong_attempts"] * PENALTY_PER_WRONG_ATTEMPT
     agent_penalty = PENALTY_FOR_USING_AGENT if ls["used_agent"] else 0
+    time_bonus = int(remaining) * POINTS_PER_SECOND_REMAINING if remaining is not None else 0
     score = max(MIN_SCORE_FLOOR, level["base_points"] + time_bonus - penalty - agent_penalty)
     ls["solved"] = True
     ls["score"] = score
@@ -179,8 +186,9 @@ def _render_montar_tab(level, ls, player, remaining, current_level_idx, total_le
     badge_pow("100% DEDUZIDO")
     st.code(level["target_sql"], language="sql")
     st.success(
-        f"Pontuação: base {level['base_points']} + bônus de tempo {time_bonus} "
-        f"- penalidade de erros {penalty}"
+        f"Pontuação: base {level['base_points']}"
+        + (f" + bônus de tempo {time_bonus}" if remaining is not None else "")
+        + f" - penalidade de erros {penalty}"
         + (f" - penalidade por ajuda {agent_penalty}" if agent_penalty else "")
         + f" = **{score} pts**"
     )
@@ -251,12 +259,23 @@ def render_game(levels):
     player = st.session_state.player
     level = levels[st.session_state.current_level]
     ls = st.session_state.level_state[level["id"]]
-    if ls["started_at"] is None:
-        ls["started_at"] = time.time()
+    timer_enabled = st.session_state.timer_enabled
 
-    elapsed = time.time() - ls["started_at"]
-    remaining = max(0, level["time_limit"] - elapsed)
-    mins, secs = divmod(int(remaining), 60)
+    remaining = None
+    if timer_enabled:
+        if ls["started_at"] is None:
+            ls["started_at"] = time.time()
+        elapsed = time.time() - ls["started_at"]
+        remaining = max(0, level["time_limit"] - elapsed)
+
+        # Faz a tela se atualizar sozinha uma vez por segundo, sem precisar
+        # de um botão manual — só enquanto o nível não estiver resolvido.
+        if HAS_AUTOREFRESH and not ls["solved"]:
+            st_autorefresh(
+                interval=TIMER_REFRESH_INTERVAL_MS,
+                limit=int(level["time_limit"]) + 10,
+                key=f"autorefresh_{level['id']}",
+            )
 
     top1, top2, top3 = st.columns([2, 1, 1])
     with top1:
@@ -266,11 +285,22 @@ def render_game(levels):
             unsafe_allow_html=True,
         )
     with top2:
-        if not ls["solved"]:
-            timer_box(f"⏱ {mins:02d}:{secs:02d}", danger=remaining < 30)
-            st.button("🔄 Atualizar cronômetro", key="refresh_timer")
-        else:
+        if not timer_enabled:
+            timer_box("⏱ Desativado", off=True)
+        elif ls["solved"]:
             timer_box("✅ RESOLVIDO")
+        else:
+            mins, secs = divmod(int(remaining), 60)
+            timer_box(f"⏱ {mins:02d}:{secs:02d}", danger=remaining < 30)
+        toggle = st.checkbox("Ativar cronômetro", value=timer_enabled, key="timer_toggle")
+        if toggle != timer_enabled:
+            st.session_state.timer_enabled = toggle
+            st.rerun()
+        if timer_enabled and not HAS_AUTOREFRESH:
+            st.caption(
+                "⚠️ Para a contagem atualizar sozinha, instale a dependência "
+                "`streamlit-autorefresh` (já está no requirements.txt)."
+            )
     with top3:
         score_box(f"⭐ {ls['score'] if ls['score'] is not None else '—'}")
 

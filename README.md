@@ -122,14 +122,37 @@ gravar dados através dele. Por isso a integração foi dividida em duas partes:
   2. Na primeira aba da planilha, crie o cabeçalho: `nome | codinome | avatar | badge | timestamp`.
   3. Implantar → Nova implantação → tipo "Web app" → executar como você → acesso "Qualquer pessoa".
   4. Copie a URL gerada (termina em `/exec`).
-  5. Cole essa URL na constante `GOOGLE_SCRIPT_WEBAPP_URL`, no topo do `app.py`.
+  5. Cole essa URL na constante `GOOGLE_SCRIPT_WEBAPP_URL`, em `src/config.py`.
 
 Enquanto `GOOGLE_SCRIPT_WEBAPP_URL` não estiver preenchida, o jogo continua funcionando
-normalmente (cadastro local + leitura da planilha), só não grava novos cadastros nela —
-o jogador vê um aviso amigável explicando isso na hora do cadastro.
+normalmente (cadastro local + leitura da planilha), só não grava novos cadastros nela.
+**A barra lateral mostra um aviso "☁️ Sincronização com a planilha: não configurada"
+sempre que isso acontecer** — é o primeiro lugar a checar se o cadastro não estiver
+salvando.
 
 Se dois detetives tentarem usar o mesmo codinome, o cadastro é recusado com um aviso
 para escolher outro (ou fazer login, se o codinome for realmente dele).
+
+### Checklist se o cadastro não estiver salvando na planilha
+
+1. **`GOOGLE_SCRIPT_WEBAPP_URL` está preenchida em `src/config.py`?** Essa é a causa mais
+   comum — por padrão ela vem vazia (só o link `/pubhtml`, que é somente leitura, foi
+   configurado). A barra lateral avisa isso explicitamente.
+2. **O Apps Script foi criado a partir da PRÓPRIA planilha** (Extensões > Apps Script,
+   com a planilha aberta) — assim `SpreadsheetApp.getActiveSpreadsheet()` no `Code.gs`
+   aponta pra planilha certa. Um script "solto" (não vinculado) não vai gravar nela.
+3. **A implantação foi feita como "Web app"**, com "Executar como: Eu" e "Quem tem
+   acesso: Qualquer pessoa". Sem isso, o POST do jogo é recusado com erro de permissão.
+4. **A URL colada em `GOOGLE_SCRIPT_WEBAPP_URL` termina em `/exec`** (não em `/dev`).
+5. **Editou o `Code.gs` depois de implantar?** Toda alteração exige "Implantar > Gerenciar
+   implantações > editar (lápis) > Nova versão", ou a URL antiga continua rodando o
+   código antigo. Editar o script sem gerar nova versão é a segunda causa mais comum.
+6. **A primeira aba da planilha tem o cabeçalho exato** `nome | codinome | avatar |
+   badge | timestamp` na linha 1 (mesma ordem, sem acentos diferentes).
+7. Depois de cadastrar, o jogo agora mostra uma mensagem (✅ sincronizado ou ℹ️ não
+   configurado) logo no topo da tela principal, uma única vez — antes essa mensagem
+   desaparecia instantaneamente por causa de um bug (ela era exibida e, no mesmo
+   instante, apagada por um `st.rerun()` que rodava em seguida). Isso já foi corrigido.
 
 ## Níveis
 
@@ -146,8 +169,8 @@ próximo (o menu lateral mostra 🔒 para níveis bloqueados).
 
 ```
 pontuação do nível = base_points
-                    + (segundos restantes × 2)      # bônus de tempo
-                    - (tentativas erradas × 50)      # penalidade por erro
+                    + (segundos restantes × 2)       # bônus de tempo, só se o cronômetro estiver ativo
+                    - (tentativas erradas × 50)       # penalidade por erro
                     - (400 se usou o Agente)          # penalidade por ajuda
 ```
 com piso mínimo de 50 pontos. A pontuação total do jogador é a soma dos níveis
@@ -155,10 +178,21 @@ resolvidos, exibida no cabeçalho e enviada ao placar (`leaderboard.json`).
 
 ## Cronômetro
 
-Cada nível tem um tempo limite. O cronômetro é calculado a partir do horário de início
-do nível e atualizado a cada interação (botões, seleções, ou o botão manual
-"🔄 Atualizar cronômetro"). Se o tempo esgotar, o jogador ainda pode resolver o caso,
-mas perde o bônus de tempo.
+Cada nível tem um tempo limite, mas o jogador decide se quer jogar contra o relógio:
+
+- **Ligado (padrão):** a contagem regressiva aparece no topo do nível e se atualiza
+  **sozinha**, uma vez por segundo, sem precisar clicar em nada (usa o pacote
+  `streamlit-autorefresh`, já incluso no `requirements.txt`). Resolver o caso com tempo
+  sobrando dá bônus de pontuação; se o tempo esgotar, o caso ainda pode ser resolvido,
+  só que sem esse bônus.
+- **Desligado:** o cronômetro some (aparece só um aviso "⏱ Desativado") e a pontuação do
+  nível não leva bônus de tempo em conta — só penalidades por erro/uso do Agente.
+
+O toggle **"Ativar cronômetro"** fica bem ao lado do relógio, no topo de cada nível, e
+pode ser alternado a qualquer momento (a preferência vale para a sessão atual do
+navegador). Se o pacote `streamlit-autorefresh` não estiver instalado, o cronômetro
+continua funcionando, mas só atualiza o número quando alguma outra ação disparar um
+rerun (o jogo avisa isso com uma mensagem discreta).
 
 ## Arquitetura do motor de dedução (`src/engine.py`)
 
