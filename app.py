@@ -1,32 +1,3 @@
-"""
-CASO SQL: O ENIGMA DA CONSULTA PERDIDA
----------------------------------------
-Jogo de dedução lógica em estilo de quadrinho noir dos anos 50, feito com Streamlit.
-
-REGRA DE OURO DO AGENTE:
-- Nenhum SQL é "inventado" ou completado por experiência.
-- Cada campo da consulta final é resultado direto da aplicação das pistas sobre um
-  domínio de possibilidades (processo de inferência / CSP simples).
-- Se, após todas as pistas, alguma categoria ainda tiver mais de uma possibilidade,
-  o caso é declarado "INCOMPLETO" — o agente nunca escolhe arbitrariamente.
-
-Este arquivo é apenas o ponto de entrada: toda a lógica mora em src/.
-
-    src/
-    ├── config.py        constantes e caminhos (URLs, pontuação, etc.)
-    ├── engine.py        motor de dedução (CSP) — puro, sem Streamlit
-    ├── levels.py         definição dos 3 casos/níveis do jogo
-    ├── session.py         sessão local (cadastro só uma vez por dispositivo)
-    ├── sheets.py           integração com Google Sheets (leitura CSV + Apps Script)
-    ├── leaderboard.py       placar de detetives (JSON local)
-    └── ui/
-        ├── styles.py        injeta assets/styles.css
-        ├── components.py     painéis, balões de fala, selos (HTML reutilizável)
-        ├── registration.py    tela de cadastro/login
-        ├── sidebar.py          barra lateral (ficha, pontuação, navegação)
-        └── game.py              abas do jogo (pistas, montar, agente, placar)
-"""
-
 import streamlit as st
 
 from src.config import PAGE_TITLE, PAGE_ICON, TIMER_ENABLED_BY_DEFAULT
