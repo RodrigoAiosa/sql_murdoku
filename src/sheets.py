@@ -76,9 +76,8 @@ def register_cloud_player(payload, timeout=6):
             GOOGLE_SCRIPT_WEBAPP_URL, data=data,
             headers={"Content-Type": "application/json"}, method="POST",
         )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            resp.read()
-        return True, "Cadastro sincronizado com a planilha do Google. ✅"
+        
+
     except Exception as e:
         return False, (
             f"Não foi possível sincronizar com a planilha agora ({e}). Seu cadastro "
