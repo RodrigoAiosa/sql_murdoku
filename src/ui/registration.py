@@ -19,7 +19,6 @@ Campos gerados automaticamente (não pedidos ao jogador):
 """
 
 import random
-import re
 import uuid
 
 import streamlit as st
@@ -29,8 +28,7 @@ from src.config import AVATARS
 from src.session import save_local_session
 from src.sheets import find_cloud_player, register_cloud_player
 from src.ui.components import title_banner, panel
-
-EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+from src.validators import validate_cadastro, CELULAR_EXEMPLO
 
 
 def _new_id_registro():
@@ -87,24 +85,19 @@ def render_registration_screen():
         with st.form("cadastro_form"):
             nome = st.text_input("Nome completo do detetive")
             email = st.text_input("Email")
-            celular = st.text_input("Celular (com DDD)")
+            celular = st.text_input(
+                "Celular (com DDD)", placeholder=f"Ex: {CELULAR_EXEMPLO}"
+            )
             codinome = st.text_input("Codinome (usado no placar público)")
             avatar = st.radio("Escolha seu avatar", AVATARS, horizontal=True)
             enviado = st.form_submit_button("🔍 Começar Investigação")
 
         if enviado:
-            erros = []
-            if not nome.strip():
-                erros.append("nome")
-            if not email.strip() or not EMAIL_REGEX.match(email.strip()):
-                erros.append("email válido")
-            if not celular.strip():
-                erros.append("celular")
-            if not codinome.strip():
-                erros.append("codinome")
+            erros = validate_cadastro(nome, email, celular, codinome)
 
             if erros:
-                st.error(f"Preencha corretamente: {', '.join(erros)}.")
+                for erro in erros:
+                    st.error(erro)
             elif find_cloud_player(codinome):
                 st.error(
                     "Esse codinome já está em uso por outro detetive. Escolha outro, ou "

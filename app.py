@@ -75,12 +75,15 @@ if st.session_state.player is None:
 
 title_banner()
 
-# Mostra (uma única vez) o resultado da tentativa de sincronizar o
-# cadastro com a planilha do Google, feita na tela de cadastro.
+# Se a sincronização com a planilha do Google falhar (ou não estiver
+# configurada), avisa o jogador uma única vez. Quando dá certo, fica em
+# silêncio — não precisa confirmar na tela (a barra lateral já mostra o
+# status geral de sincronização).
 notice = st.session_state.pop("_cloud_sync_notice", None)
 if notice is not None:
     ok, msg = notice
-    (st.success if ok else st.info)(msg)
+    if not ok:
+        st.info(msg)
 
 render_sidebar(LEVELS)
 render_game(LEVELS)
