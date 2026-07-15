@@ -45,7 +45,7 @@ GOOGLE_SHEET_PUBHTML_URL = (
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwQTp7f0ph0nfCwOelM9XgUSi-e8-EMYDHe6"
     "Ef8WOy8GyKvzU8ZrXq00out2818c8WJ51FEHWKQTYG/pubhtml"
 )
-GOOGLE_SCRIPT_WEBAPP_URL = ""  # <-- cole aqui a URL /exec do seu Apps Script (ver README)
+GOOGLE_SCRIPT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzCzVRD4FXMggsnck5oXivP6DmKqwLpU5uqU-wggNdnywiCagq0TircmMh3YaOyMKgiOA/exec"  # <-- cole aqui a URL /exec do seu Apps Script (ver README)
 
 # ----------------------------------------------------------------------
 # Aparência / geral
