@@ -62,7 +62,7 @@ if "level_state" not in st.session_state:
     st.session_state.level_state = {
         lvl["id"]: {
             "started_at": None, "solved": False, "wrong_attempts": 0,
-            "used_agent": False, "score": None,
+            "used_agent": False, "agent_revealed": False, "score": None, "score_breakdown": None,
         } for lvl in LEVELS
     }
 

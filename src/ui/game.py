@@ -36,11 +36,33 @@ def _render_pistas_tab(level):
         speech_bubble(i, text)
 
 
+def _score_breakdown_text(level, breakdown):
+    return (
+        f"Pontuação: base {level['base_points']}"
+        + (f" + bônus de tempo {breakdown['time_bonus']}" if breakdown["used_timer"] else "")
+        + f" - penalidade de erros {breakdown['penalty']}"
+        + (f" - penalidade por ajuda {breakdown['agent_penalty']}" if breakdown["agent_penalty"] else "")
+        + f" = **{breakdown['score']} pts**"
+    )
+
+
+def _render_solved_result(level, ls, current_level_idx, total_levels):
+    case_closed("CASO ENCERRADO!")
+    badge_pow("100% DEDUZIDO")
+    st.code(level["target_sql"], language="sql")
+    if ls.get("score_breakdown"):
+        st.success(_score_breakdown_text(level, ls["score_breakdown"]))
+    else:
+        st.info(f"Pontuação obtida neste nível: **{ls['score']} pts**.")
+    if current_level_idx < total_levels - 1:
+        st.info("Um novo nível foi desbloqueado no menu lateral! 👈")
+    else:
+        case_closed(f"INVESTIGAÇÃO CONCLUÍDA!<br>Pontuação total: {total_score()} pts")
+
+
 def _render_montar_tab(level, ls, player, remaining, current_level_idx, total_levels):
     if ls["solved"]:
-        case_closed("CASO JÁ ENCERRADO!")
-        st.code(level["target_sql"], language="sql")
-        st.info(f"Pontuação obtida neste nível: **{ls['score']} pts**.")
+        _render_solved_result(level, ls, current_level_idx, total_levels)
         return
 
     if remaining is not None and remaining <= 0:
@@ -180,24 +202,19 @@ def _render_montar_tab(level, ls, player, remaining, current_level_idx, total_le
     score = max(MIN_SCORE_FLOOR, level["base_points"] + time_bonus - penalty - agent_penalty)
     ls["solved"] = True
     ls["score"] = score
+    ls["score_breakdown"] = {
+        "time_bonus": time_bonus,
+        "penalty": penalty,
+        "agent_penalty": agent_penalty,
+        "used_timer": remaining is not None,
+        "score": score,
+    }
     update_leaderboard(player["codinome"], player["nome"], player["avatar"], total_score())
 
-    case_closed("CASO ENCERRADO!")
-    badge_pow("100% DEDUZIDO")
-    st.code(level["target_sql"], language="sql")
-    st.success(
-        f"Pontuação: base {level['base_points']}"
-        + (f" + bônus de tempo {time_bonus}" if remaining is not None else "")
-        + f" - penalidade de erros {penalty}"
-        + (f" - penalidade por ajuda {agent_penalty}" if agent_penalty else "")
-        + f" = **{score} pts**"
-    )
-    if current_level_idx < total_levels - 1:
-        st.info("Um novo nível foi desbloqueado no menu lateral! 👈")
-    else:
+    if current_level_idx == total_levels - 1:
         st.balloons()
-        case_closed(f"INVESTIGAÇÃO CONCLUÍDA!<br>Pontuação total: {total_score()} pts")
-    st.rerun()
+
+    _render_solved_result(level, ls, current_level_idx, total_levels)
 
 
 def _render_agente_tab(level, ls):
@@ -210,11 +227,13 @@ def _render_agente_tab(level, ls):
         "ainda não tiver sido resolvido.",
     )
 
-    if not st.button("🤖 Chamar o Agente para Resolver o Caso"):
-        return
+    if st.button("🤖 Chamar o Agente para Resolver o Caso"):
+        if not ls["solved"]:
+            ls["used_agent"] = True
+        ls["agent_revealed"] = True
 
-    if not ls["solved"]:
-        ls["used_agent"] = True
+    if not ls.get("agent_revealed"):
+        return
 
     for entry in level["log"]:
         speech_bubble(entry["n"], entry["clue"])

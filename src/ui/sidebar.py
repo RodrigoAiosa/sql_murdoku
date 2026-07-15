@@ -11,7 +11,7 @@ def _fresh_level_state(levels):
     return {
         lvl["id"]: {
             "started_at": None, "solved": False, "wrong_attempts": 0,
-            "used_agent": False, "score": None,
+            "used_agent": False, "agent_revealed": False, "score": None, "score_breakdown": None,
         } for lvl in levels
     }
 
