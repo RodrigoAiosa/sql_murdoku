@@ -7,12 +7,6 @@ import time
 
 import streamlit as st
 
-try:
-    from streamlit_autorefresh import st_autorefresh
-    HAS_AUTOREFRESH = True
-except ImportError:
-    HAS_AUTOREFRESH = False
-
 from src.config import (
     POINTS_PER_SECOND_REMAINING,
     PENALTY_PER_WRONG_ATTEMPT,
@@ -150,71 +144,85 @@ def _render_montar_tab(level, ls, player, remaining, current_level_idx, total_le
                                         label_visibility="collapsed", key=f"limv_{level['id']}")
 
     st.markdown("<hr class='comic-hr'>", unsafe_allow_html=True)
+    if ls["wrong_attempts"] > 0:
+        st.caption(
+            f"❌ Tentativas erradas até agora: **{ls['wrong_attempts']}** "
+            f"(-{ls['wrong_attempts'] * PENALTY_PER_WRONG_ATTEMPT} pts na pontuação final)"
+        )
     verify = st.button("🔍 Verificar Solução", type="primary")
 
-    if not verify:
-        return
+    if verify:
+        sol = level["domains"]
+        checks = {
+            "Modificador SELECT": p_select_mod == sol["select_modifier"][0],
+            "Colunas": set(p_columns) == sol["columns"][0],
+            "Tabela principal": p_main_table == sol["main_table"][0],
+            "Tipo de JOIN": p_join_type == sol["join_type"][0],
+            "Presença de WHERE": p_where_presence == sol["where_presence"][0],
+            "GROUP BY": p_group_by == sol["group_by_presence"][0],
+            "HAVING": p_having == sol["having_presence"][0],
+            "Presença de ORDER BY": p_order_presence == sol["order_by_presence"][0],
+            "LIMIT": p_limit == sol["limit_presence"][0],
+        }
+        if sol["join_type"][0] != "SEM JOIN":
+            checks["Tabela unida"] = p_joined_table == sol["joined_table"][0]
+            checks["Condição do JOIN"] = p_join_cond == sol["join_condition"][0]
+        if sol["where_presence"][0] == "PRESENTE":
+            checks["Condição do WHERE"] = p_where_cond == sol["where_condition"][0]
+        if sol["group_by_presence"][0] == "PRESENTE":
+            checks["Coluna do GROUP BY"] = p_group_col == sol["group_by_column"][0]
+        if sol["having_presence"][0] == "PRESENTE":
+            checks["Condição do HAVING"] = p_having_cond == sol["having_condition"][0]
+        if sol["order_by_presence"][0] == "PRESENTE":
+            checks["Coluna do ORDER BY"] = p_order_col == sol["order_by_column"][0]
+        if sol["limit_presence"][0] == "PRESENTE":
+            checks["Valor do LIMIT"] = p_limit_val == sol["limit_value"][0]
 
-    sol = level["domains"]
-    checks = {
-        "Modificador SELECT": p_select_mod == sol["select_modifier"][0],
-        "Colunas": set(p_columns) == sol["columns"][0],
-        "Tabela principal": p_main_table == sol["main_table"][0],
-        "Tipo de JOIN": p_join_type == sol["join_type"][0],
-        "Presença de WHERE": p_where_presence == sol["where_presence"][0],
-        "GROUP BY": p_group_by == sol["group_by_presence"][0],
-        "HAVING": p_having == sol["having_presence"][0],
-        "Presença de ORDER BY": p_order_presence == sol["order_by_presence"][0],
-        "LIMIT": p_limit == sol["limit_presence"][0],
-    }
-    if sol["join_type"][0] != "SEM JOIN":
-        checks["Tabela unida"] = p_joined_table == sol["joined_table"][0]
-        checks["Condição do JOIN"] = p_join_cond == sol["join_condition"][0]
-    if sol["where_presence"][0] == "PRESENTE":
-        checks["Condição do WHERE"] = p_where_cond == sol["where_condition"][0]
-    if sol["group_by_presence"][0] == "PRESENTE":
-        checks["Coluna do GROUP BY"] = p_group_col == sol["group_by_column"][0]
-    if sol["having_presence"][0] == "PRESENTE":
-        checks["Condição do HAVING"] = p_having_cond == sol["having_condition"][0]
-    if sol["order_by_presence"][0] == "PRESENTE":
-        checks["Coluna do ORDER BY"] = p_order_col == sol["order_by_column"][0]
-    if sol["limit_presence"][0] == "PRESENTE":
-        checks["Valor do LIMIT"] = p_limit_val == sol["limit_value"][0]
+        all_correct = all(checks.values())
 
-    all_correct = all(checks.values())
+        # Guarda o resultado da última verificação no estado do nível (em vez
+        # de só numa variável local): assim ele continua na tela mesmo depois
+        # de reruns causados por outras interações (cronômetro, sidebar etc.).
+        ls["last_check"] = {"checks": checks, "all_correct": all_correct}
 
-    panel_lines = "".join(
-        f"{'✅' if ok else '❌'} {label}<br>" for label, ok in checks.items()
-    )
-    panel("RELATÓRIO DA PERÍCIA", panel_lines)
+        if not all_correct:
+            ls["wrong_attempts"] += 1
+        else:
+            penalty = ls["wrong_attempts"] * PENALTY_PER_WRONG_ATTEMPT
+            agent_penalty = PENALTY_FOR_USING_AGENT if ls["used_agent"] else 0
+            time_bonus = int(remaining) * POINTS_PER_SECOND_REMAINING if remaining is not None else 0
+            score = max(MIN_SCORE_FLOOR, level["base_points"] + time_bonus - penalty - agent_penalty)
+            ls["solved"] = True
+            ls["score"] = score
+            ls["score_breakdown"] = {
+                "time_bonus": time_bonus,
+                "penalty": penalty,
+                "agent_penalty": agent_penalty,
+                "used_timer": remaining is not None,
+                "score": score,
+            }
+            update_leaderboard(player["codinome"], player["nome"], player["avatar"], total_score())
 
-    if not all_correct:
-        ls["wrong_attempts"] += 1
-        st.warning(
-            "Ainda há contradições no seu dossiê, detetive. Releia as pistas e tente "
-            f"de novo. (Cada erro reduz sua pontuação final em {PENALTY_PER_WRONG_ATTEMPT} pts.)"
+            if current_level_idx == total_levels - 1:
+                st.balloons()
+
+            _render_solved_result(level, ls, current_level_idx, total_levels)
+            return
+
+    # Sempre renderiza o último relatório de perícia guardado no estado do
+    # nível — não só na execução em que o botão foi clicado. É isso que
+    # impede o relatório de "sumir" a cada rerun automático da página.
+    last_check = ls.get("last_check")
+    if last_check:
+        panel_lines = "".join(
+            f"{'✅' if ok else '❌'} {label}<br>" for label, ok in last_check["checks"].items()
         )
-        return
-
-    penalty = ls["wrong_attempts"] * PENALTY_PER_WRONG_ATTEMPT
-    agent_penalty = PENALTY_FOR_USING_AGENT if ls["used_agent"] else 0
-    time_bonus = int(remaining) * POINTS_PER_SECOND_REMAINING if remaining is not None else 0
-    score = max(MIN_SCORE_FLOOR, level["base_points"] + time_bonus - penalty - agent_penalty)
-    ls["solved"] = True
-    ls["score"] = score
-    ls["score_breakdown"] = {
-        "time_bonus": time_bonus,
-        "penalty": penalty,
-        "agent_penalty": agent_penalty,
-        "used_timer": remaining is not None,
-        "score": score,
-    }
-    update_leaderboard(player["codinome"], player["nome"], player["avatar"], total_score())
-
-    if current_level_idx == total_levels - 1:
-        st.balloons()
-
-    _render_solved_result(level, ls, current_level_idx, total_levels)
+        panel("RELATÓRIO DA PERÍCIA", panel_lines)
+        if not last_check["all_correct"]:
+            st.warning(
+                "Ainda há contradições no seu dossiê, detetive. Releia as pistas e tente "
+                f"de novo. (Cada erro reduz sua pontuação final em {PENALTY_PER_WRONG_ATTEMPT} pts.)"
+            )
 
 
 def _render_agente_tab(level, ls):
@@ -227,13 +235,21 @@ def _render_agente_tab(level, ls):
         "ainda não tiver sido resolvido.",
     )
 
-    if st.button("🤖 Chamar o Agente para Resolver o Caso"):
+    already_revealed = ls.get("agent_revealed", False)
+    button_label = (
+        "🔁 Ver de novo a resolução do Agente" if already_revealed
+        else "🤖 Chamar o Agente para Resolver o Caso"
+    )
+    if st.button(button_label):
         if not ls["solved"]:
             ls["used_agent"] = True
         ls["agent_revealed"] = True
 
     if not ls.get("agent_revealed"):
         return
+
+    if already_revealed:
+        st.caption("ℹ️ O agente já foi chamado neste nível — a resolução abaixo continua disponível a qualquer momento.")
 
     for entry in level["log"]:
         speech_bubble(entry["n"], entry["clue"])
@@ -274,27 +290,50 @@ def _render_placar_tab():
         st.markdown(f'<div class="speech-bubble">{speech_bubble_html}</div>', unsafe_allow_html=True)
 
 
+@st.fragment(run_every=TIMER_REFRESH_INTERVAL_MS / 1000)
+def _render_timer_fragment(level_id, time_limit):
+    """Atualiza só a caixinha do cronômetro a cada segundo.
+
+    Antes, o autorrefresh re-executava a página INTEIRA a cada segundo.
+    Isso tinha dois efeitos colaterais visíveis para o jogador:
+    - na aba "Monte a Consulta", o relatório de perícia (que só existia
+      enquanto durava aquele clique do botão) sumia da tela em ~1s;
+    - na aba "Sala do Agente", a re-execução completa fazia a interface
+      voltar para a primeira aba, dando a impressão de que a resposta do
+      agente tinha desaparecido.
+    Isolando o tique do relógio num fragmento, só esta função reroda a
+    cada intervalo — o resto da página (abas, relatórios, resultado do
+    agente) fica intacto.
+    """
+    ls = st.session_state.level_state[level_id]
+    if ls["solved"]:
+        timer_box("✅ RESOLVIDO")
+        return
+    if ls["started_at"] is None:
+        ls["started_at"] = time.time()
+    elapsed = time.time() - ls["started_at"]
+    remaining = max(0, time_limit - elapsed)
+    mins, secs = divmod(int(remaining), 60)
+    timer_box(f"⏱ {mins:02d}:{secs:02d}", danger=remaining < 30)
+
+
 def render_game(levels):
     player = st.session_state.player
     level = levels[st.session_state.current_level]
     ls = st.session_state.level_state[level["id"]]
     timer_enabled = st.session_state.timer_enabled
 
+    # `remaining` aqui é só o valor usado nesta execução do script (pontuação
+    # e avisos da aba "Monte a Consulta"); é recalculado a cada clique real
+    # do jogador, então fica sempre correto no momento de "Verificar Solução".
+    # O tique visual do relógio, à parte, é responsabilidade do fragmento
+    # acima e não depende deste valor.
     remaining = None
     if timer_enabled:
         if ls["started_at"] is None:
             ls["started_at"] = time.time()
         elapsed = time.time() - ls["started_at"]
         remaining = max(0, level["time_limit"] - elapsed)
-
-        # Faz a tela se atualizar sozinha uma vez por segundo, sem precisar
-        # de um botão manual — só enquanto o nível não estiver resolvido.
-        if HAS_AUTOREFRESH and not ls["solved"]:
-            st_autorefresh(
-                interval=TIMER_REFRESH_INTERVAL_MS,
-                limit=int(level["time_limit"]) + 10,
-                key=f"autorefresh_{level['id']}",
-            )
 
     top1, top2, top3 = st.columns([2, 1, 1])
     with top1:
@@ -306,20 +345,12 @@ def render_game(levels):
     with top2:
         if not timer_enabled:
             timer_box("⏱ Desativado", off=True)
-        elif ls["solved"]:
-            timer_box("✅ RESOLVIDO")
         else:
-            mins, secs = divmod(int(remaining), 60)
-            timer_box(f"⏱ {mins:02d}:{secs:02d}", danger=remaining < 30)
+            _render_timer_fragment(level["id"], level["time_limit"])
         toggle = st.checkbox("Ativar cronômetro", value=timer_enabled, key="timer_toggle")
         if toggle != timer_enabled:
             st.session_state.timer_enabled = toggle
             st.rerun()
-        if timer_enabled and not HAS_AUTOREFRESH:
-            st.caption(
-                "⚠️ Para a contagem atualizar sozinha, instale a dependência "
-                "`streamlit-autorefresh` (já está no requirements.txt)."
-            )
     with top3:
         score_box(f"⭐ {ls['score'] if ls['score'] is not None else '—'}")
 
